@@ -10,10 +10,10 @@ from .metric import convert_tokens, evaluate_by_dict
 from data_process import pickle_load_large_file
 
 class Model_Trainer(object):
-    def __init__(self, args, model, loss, train_data_loader, dev_data_loader, dev_eval_file, optimizer, #scheduler,
+    def __init__(self, args, model, loss, train_data_loader, dev_data_loader, dev_eval_file, optimizer, scheduler,
                  epochs, with_cuda, save_dir, verbosity=2, save_freq=1, print_freq=10, resume=False, identifier='',
                  debug=False, debug_batchnum=2, visualizer=None, logger=None, grad_clip=5.0, decay=0.9999, lr=0.001,
-                 #lr_warm_up_num=1000,
+                 lr_warm_up_num=1000,
                 use_scheduler=False, use_grad_clip=False, use_ema=False, ema=None,
                  use_early_stop=False, early_stop=10):
         self.device = torch.device('cuda' if with_cuda else 'cpu')
@@ -39,10 +39,10 @@ class Model_Trainer(object):
         self.unused = True  # whether scheduler has been updated
 
         self.lr = lr
-        #self.lr_warm_up_num = lr_warm_up_num
+        self.lr_warm_up_num = lr_warm_up_num
         self.decay = decay
         self.use_scheduler = use_scheduler
-        #self.scheduler = scheduler
+        self.scheduler = scheduler
         self.use_grad_clip = use_grad_clip
         self.grad_clip = grad_clip
         self.use_ema = use_ema
@@ -168,8 +168,8 @@ class Model_Trainer(object):
                        "speed: {} examples/sec").format(
                     batch_idx, len(self.train_data_loader),
                     epoch,
-                    self.optimizer.param_groups[0]['lr'],
-                    #self.scheduler.get_lr(),
+                    #self.optimizer.param_groups[0]['lr'],
+                    self.scheduler.get_lr(),
                     batch_loss,
                     loss.item(),
                     speed))
@@ -292,6 +292,6 @@ class Model_Trainer(object):
         self.best_em = checkpoint['best_em']
         self.step = checkpoint['step']
         self.start_time = checkpoint['start_time']
-        #if self.use_scheduler:
-            #self.scheduler.last_epoch = checkpoint['epoch']
+        if self.use_scheduler:
+            self.scheduler.last_epoch = checkpoint['epoch']
         print("Checkpoint '{}' (epoch {}) loaded".format(resume_path, self.start_epoch))

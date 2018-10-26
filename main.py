@@ -127,7 +127,7 @@ def add_argument():
                         help='beta 2')
     parser.add_argument('--decay', default=0.9999, type=float,
                         help='exponential moving average decay')
-    parser.add_argument('--use_scheduler', default=False, action='store_false',
+    parser.add_argument('--use_scheduler', default=True, action='store_false',
                         help='whether use learning rate scheduler')
     parser.add_argument('--use_grad_clip', default=True, action='store_false',
                         help='whether use gradient clip')
@@ -206,8 +206,8 @@ def main(args):
     #base_lr = 1
     parameters = filter(lambda p: p.requires_grad, model.parameters())
     optimizer = optim.Adam(params = parameters, lr = args.lr, betas = (args.beta1, args.beta2),eps = 1e-8, weight_decay = 3e-7)
-    #cr = 1.0 / math.log(args.lr_warm_up_num)
-    # scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda = lambda ee: cr * math.log(ee + 1) if ee < args.lr_warm_up_num else 1)
+    cr = 1.0 / math.log(args.lr_warm_up_num)
+    scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda = lambda ee: cr * math.log(ee + 1) if ee < args.lr_warm_up_num else 1)
     #optimizer = optim.Adam(params = parameters, lr = base_lr, betas = (args.beta1, args.beta2),eps = 1e-8, weight_decay = 3e-7)
     #cr = lr / math.log(args.lr_warm_up_num)
     #scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda ee: cr * math.log(ee + 1) if ee < args.lr_warm_up_num else lr)
@@ -231,7 +231,7 @@ def main(args):
         dev_data_loader=dev_data_loader,
         dev_eval_file=args.dev_eval_data,
         optimizer=optimizer,
-        #scheduler=scheduler,
+        scheduler=scheduler,
         epochs=args.epochs,
         with_cuda=args.with_cuda,
         save_dir=args.save_dir,
@@ -243,7 +243,7 @@ def main(args):
         debug=args.debug,
         debug_batchnum=args.debug_batchnum,
         lr=args.lr,
-        #lr_warm_up_num=args.lr_warm_up_num,
+        lr_warm_up_num=args.lr_warm_up_num,
         grad_clip=args.grad_clip,
         decay=args.decay,
         visualizer=vis,
